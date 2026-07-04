@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ByGamer - Android Addons Permanentes</title>
+    
+    <!-- Librería de Supabase para que los Addons se guarden en la nube permanentemente -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        :root {
+            --bg-color: #0b0b0f;
+            --card-bg: #12121a;
+            --neon-purple: #bc34fa;
+            --neon-purple-glow: rgba(188, 52, 250, 0.6);
+            --text-color: #ffffff;
+            --text-muted: #a0a0b0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #fff;
+            text-shadow: 0 0 10px var(--neon-purple), 0 0 20px var(--neon-purple);
+            margin-bottom: 10px;
+        }
+
+        .gama-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #232330, #151520);
+            padding: 10px 20px;
+            border-radius: 50px;
+            border: 1px solid var(--neon-purple);
+            box-shadow: 0 0 10px var(--neon-purple-glow);
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .addons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 50px;
+        }
+
+        .addon-card {
+            background-color: var(--card-bg);
+            border: 2px solid var(--neon-purple);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 0 15px var(--neon-purple-glow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .addon-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 25px var(--neon-purple);
+        }
+
+        .addon-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-bottom: 2px solid var(--neon-purple);
+            background-color: #1f1f2e;
+        }
+
+        .addon-info {
+            padding: 20px;
+        }
+
+        .addon-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+
+        .btn-download {
+            display: block;
+            width: 100%;
+            text-align: center;
+            background: transparent;
+            color: #fff;
+            border: 2px solid var(--neon-purple);
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            text-transform: uppercase;
+            text-decoration: none;
+            box-shadow: 0 0 10px var(--neon-purple-glow);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-download:hover {
+            background-color: var(--neon-purple);
+            box-shadow: 0 0 20px var(--neon-purple);
+        }
+
+        /* Panel de Administración */
+        .admin-panel {
+            background-color: var(--card-bg);
+            border: 2px dashed var(--neon-purple);
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 600px;
+            margin: 40px auto;
+            box-shadow: 0 0 15px rgba(188, 52, 250, 0.2);
+        }
+
+        .admin-panel h2 {
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.5rem;
+            color: #fff;
+            text-shadow: 0 0 5px var(--neon-purple);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .form-control {
+            width: 100%;
+            background-color: #1a1a26;
+            border: 1px solid var(--neon-purple);
+            padding: 12px;
+            color: #fff;
+            border-radius: 6px;
+            outline: none;
+        }
+
+        .form-control:focus {
+            box-shadow: 0 0 8px var(--neon-purple);
+        }
+
+        .btn-admin {
+            width: 100%;
+            background-color: var(--neon-purple);
+            color: #fff;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 0 0 15px var(--neon-purple-glow);
+            transition: all 0.3s ease;
+        }
+
+        .btn-admin:hover {
+            box-shadow: 0 0 25px var(--neon-purple);
+            transform: scale(1.02);
+        }
+
+        #adminAuth {
+            text-align: center;
+        }
+        
+        #adminFormContainer {
+            display: none;
+        }
+
+        .no-addons {
+            text-align: center;
+            color: var(--text-muted);
+            grid-column: 1 / -1;
+            padding: 40px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>ByGamer</h1>
+        <div class="gama-badge" id="gamaBadge">Detectando especificaciones de Android...</div>
+    </header>
+
+    <div class="container">
+        <!-- Rejilla de Addons subidos -->
+        <div class="addons-grid" id="addonsGrid">
+            <div class="no-addons" id="noAddonsMessage">Cargando addons desde la nube permanente...</div>
+        </div>
+
+        <!-- Sección de Administración protegida -->
+        <div class="admin-panel">
+            <!-- Bloqueo por Contraseña -->
+            <div id="adminAuth">
+                <h2>Panel de Administración (Subir Addons)</h2>
+                <div class="form-group">
+                    <input type="password" id="adminPassword" class="form-control" placeholder="Introduce tu contraseña segura">
+                </div>
+                <button class="btn-admin" onclick="checkPassword()">Acceder al Panel</button>
+            </div>
+
+            <!-- Formulario de carga (Oculto por defecto) -->
+            <div id="adminFormContainer">
+                <h2>Subir Nuevo Addon (Nube Permanente)</h2>
+                <form id="addonForm" onsubmit="saveAddon(event)">
+                    <div class="form-group">
+                        <label for="addonName">Nombre del Addon</label>
+                        <input type="text" id="addonName" class="form-control" required placeholder="Ej: Super Espadas Mod">
+                    </div>
+                    <div class="form-group">
+                        <label for="addonImage">Imagen desde tu Galería (Android)</label>
+                        <input type="file" id="addonImage" class="form-control" accept="image/*" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="addonLink">Enlace de Descarga (Mediafire, Mega, Google Drive, etc.)</label>
+                        <input type="url" id="addonLink" class="form-control" required placeholder="https://mediafire.com/...">
+                    </div>
+                    <button type="submit" class="btn-admin">Publicar en la Nube</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. CONFIGURACIÓN OBLIGATORIA DE TU BASE DE DATOS (SUPABASE)
+        // Reemplaza los textos de abajo con tus claves reales de Supabase para que funcione.
+        // ==========================================
+        const SUPABASE_URL = "TU_SUPABASE_URL_AQUI";
+        const SUPABASE_KEY = "TU_SUPABASE_KEY_AQUI";
+        
+        let supabase = null;
+        if (SUPABASE_URL !== "TU_SUPABASE_URL_AQUI") {
+            supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        }
+
+        // ==========================================
+        // 2. DETECCIÓN AUTOMÁTICA DE GAMA PARA ANDROID
+        // ==========================================
+        function detectarGama() {
+            const cores = navigator.hardwareConcurrency || 4;
+            const memory = navigator.deviceMemory || 4; 
+            
+            let gama = "MEDIA";
+
+            if (memory <= 3 || cores <= 4) {
+                gama = "BAJA";
+            } else if (memory >= 8 && cores >= 8) {
+                gama = "ALTA";
+            }
+
+            const badge = document.getElementById('gamaBadge');
+            badge.innerText = `Tu dispositivo Android es de GAMA ${gama} (${cores} Núcleos / ~${memory}GB RAM)`;
+        }
+
+        // ==========================================
+        // 3. CONTRASEÑA SEGURA DEL ADMINISTRADOR
+        // Puedes cambiar "ByGamerAndroid123" por la clave que quieras antes de subirlo.
+        // ==========================================
+        const CONTRASEÑA_SEGURA = "ByGamerAndroid123"; 
+
+        function checkPassword() {
+            const passInput = document.getElementById('adminPassword').value;
+            if (passInput === CONTRASEÑA_SEGURA) {
+                document.getElementById('adminAuth').style.display = 'none';
+                document.getElementById('adminFormContainer').style.display = 'block';
+            } else {
+                alert('Contraseña incorrecta. Solo el dueño de ByGamer puede subir archivos.');
+            }
+        }
+
+        // ==========================================
+        // 4. SUBIR ADDONS A LA NUBE PERMANENTE
+        // ==========================================
+        async function saveAddon(event) {
+            event.preventDefault();
+            
+            if (!supabase) {
+                alert("Atención: Primero debes crear tu cuenta gratuita en Supabase y poner tus credenciales en el código para guardar permanentemente.");
+                return;
+            }
+            
+            const name = document.getElementById('addonName').value;
+            const link = document.getElementById('addonLink').value;
+            const imageFile = document.getElementById('addonImage').files[0];
+
+            if (!imageFile) return;
+
+            // Convertir la imagen de la galería a texto base64 para subirla a la BD
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const base64Image = e.target.result;
+
+                // Subir datos directamente a tu tabla remota
+                const { data, error } = await supabase
+                    .from('addons')
+                    .insert([{ name: name, link: link, image: base64Image }]);
+
+                if (error) {
+                    alert("Error al guardar en la nube: " + error.message);
+                } else {
+                    document.getElementById('addonForm').reset();
+                    loadAddons(); // Recargar lista automáticamente
+                    alert('¡Excelente! El Addon se guardó permanentemente en la nube de ByGamer.');
+                }
+            };
+            
+            reader.readAsDataURL(imageFile);
+        }
+
+        // ==========================================
+        // 5. CARGAR ADDONS DESDE LA NUBE AL ENTRAR A LA WEB
+        // ==========================================
+        async function loadAddons() {
+            const grid = document.getElementById('addonsGrid');
+            grid.innerHTML = '';
+
+            if (!supabase) {
+                grid.innerHTML = '<div class="no-addons">Conecta tu base de datos Supabase en el código para ver y almacenar tus addons de forma real.</div>';
+                return;
+            }
+
+            // Descargar todos los registros guardados en tu base de datos
+            const { data: addons, error } = await supabase
+                .from('addons')
+                .select('*')
+                .order('id', { ascending: false });
+
+            if (error || !addons || addons.length === 0) {
+                grid.innerHTML = '<div class="no-addons">No hay addons en la nube todavía. ¡Usa el panel de abajo para estrenar la web!</div>';
+                return;
+            }
+
+            // Pintar los addons con el diseño morado neón
+            addons.forEach(addon => {
+                const card = document.createElement('div');
+                card.className = 'addon-card';
+                card.innerHTML = `
+                    <img src="${addon.image}" alt="${addon.name}" class="addon-img">
+                    <div class="addon-info">
+                        <div class="addon-title">${addon.name}</div>
+                        <a href="${addon.link}" target="_blank" class="btn-download">Descargar Addon</a>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Ejecutar funciones al cargar la página
+        window.onload = function() {
+            detectarGama();
+            loadAddons();
+        };
+    </script>
+</body>
+  </html>
+  
